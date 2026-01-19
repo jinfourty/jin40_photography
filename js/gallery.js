@@ -4,46 +4,44 @@ const CONFIG = {
     galleryGridSelector: '.gallery-grid',
     placeholderImage: 'https://picsum.photos/400/300?random=1',
     rowHeight: 10,
-    rowGap: 15
+    rowGap: 15,
+    initialLoadCount: 30,
+    loadMoreCount: 30
 };
 
 // ===== Main Initialization =====
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Load Data & Build Gallery
     await GalleryBuilder.init();
-
-    // 2. Initialize Filters (after items exist)
     GalleryFilter.init();
-
-    // 3. Initialize Modal
     Modal.init();
 });
 
 // ===== Gallery Builder =====
 const GalleryBuilder = {
-    items: [],
+    allItems: [],        // Original metadata (never modified)
+    filteredData: [],    // Current filtered & shuffled data
+    currentLoadedCount: 0,
+    loadMoreBtn: null,
 
     async init() {
         const grid = document.querySelector(CONFIG.galleryGridSelector);
-        if (!grid) return;
+        if (!grid) {
+            console.error('Gallery grid not found');
+            return;
+        }
 
         try {
             const response = await fetch(CONFIG.metadataUrl);
             if (!response.ok) throw new Error('Failed to load metadata');
 
-            this.items = await response.json();
+            this.allItems = await response.json();
+            console.log('Loaded items:', this.allItems.length);
 
-            // Random Shuffle (fisher-yates)
-            this.shuffleArray(this.items);
-
-            // Clear loading state or empty content
-            grid.innerHTML = '';
-
-            // Render Items
-            this.items.forEach((data, index) => {
-                const element = this.createGalleryItem(data, index);
-                grid.appendChild(element);
-            });
+            // Setup Load More button
+            this.loadMoreBtn = document.getElementById('loadMoreBtn');
+            if (this.loadMoreBtn) {
+                this.loadMoreBtn.onclick = () => this.loadMore();
+            }
 
             // Recalculate layout on resize
             let resizeTimeout;
@@ -52,14 +50,106 @@ const GalleryBuilder = {
                 resizeTimeout = setTimeout(() => this.resizeAllGalleryItems(), 100);
             });
 
-            // Initial layout calculation after a short delay to ensure DOM is ready? 
-            // Actually img.onload handles individual items.
-            // But we can trigger one restrictive pass.
-            // setTimeout(() => this.resizeAllGalleryItems(), 100);
-
         } catch (error) {
             console.error("Gallery build failed:", error);
             grid.innerHTML = '<p class="error">Failed to load gallery images.</p>';
+        }
+    },
+
+    // Filter and render fresh gallery
+    renderFiltered(filterType, filterValue) {
+        console.log('renderFiltered called:', filterType, filterValue);
+        console.log('allItems count:', this.allItems.length);
+
+        const grid = document.querySelector(CONFIG.galleryGridSelector);
+        if (!grid) {
+            console.error('Grid not found in renderFiltered');
+            return;
+        }
+
+        // Clear current gallery
+        grid.innerHTML = '';
+        this.currentLoadedCount = 0;
+
+        // Filter items from original data
+        if (filterValue === 'all') {
+            this.filteredData = [...this.allItems];
+        } else {
+            this.filteredData = this.allItems.filter(item => {
+                const itemValue = (item[filterType] || '').toLowerCase();
+                return itemValue === filterValue;
+            });
+        }
+
+        console.log('Filtered data count:', this.filteredData.length);
+
+        // Shuffle filtered data
+        this.shuffleArray(this.filteredData);
+
+        // Render initial batch
+        this.renderBatch(CONFIG.initialLoadCount);
+
+        // Update empty state
+        this.updateEmptyState();
+    },
+
+    renderBatch(count) {
+        const grid = document.querySelector(CONFIG.galleryGridSelector);
+        if (!grid) {
+            console.error('Grid not found in renderBatch');
+            return;
+        }
+
+        const startIndex = this.currentLoadedCount;
+        const endIndex = Math.min(startIndex + count, this.filteredData.length);
+        console.log('renderBatch:', startIndex, 'to', endIndex);
+
+        for (let i = startIndex; i < endIndex; i++) {
+            const element = this.createGalleryItem(this.filteredData[i], i);
+            grid.appendChild(element);
+        }
+
+        console.log('Grid children after render:', grid.children.length);
+        this.currentLoadedCount = endIndex;
+        this.updateLoadMoreButton();
+    },
+
+    loadMore() {
+        this.renderBatch(CONFIG.loadMoreCount);
+    },
+
+    updateLoadMoreButton() {
+        if (!this.loadMoreBtn) return;
+
+        if (this.currentLoadedCount >= this.filteredData.length) {
+            this.loadMoreBtn.style.display = 'none';
+        } else {
+            this.loadMoreBtn.style.display = 'block';
+            this.loadMoreBtn.textContent = 'Load More';
+        }
+    },
+
+    updateEmptyState() {
+        const grid = document.querySelector(CONFIG.galleryGridSelector);
+        let emptyMsg = document.querySelector('.gallery-empty-message');
+
+        if (this.filteredData.length === 0) {
+            grid.style.display = 'none';
+            if (!emptyMsg) {
+                emptyMsg = document.createElement('div');
+                emptyMsg.className = 'gallery-empty-message';
+                emptyMsg.textContent = 'No photos found in this category.';
+                emptyMsg.style.textAlign = 'center';
+                emptyMsg.style.padding = '50px';
+                emptyMsg.style.color = '#666';
+                grid.parentNode.insertBefore(emptyMsg, grid.nextSibling);
+            } else {
+                emptyMsg.style.display = 'block';
+            }
+            if (this.loadMoreBtn) this.loadMoreBtn.style.display = 'none';
+        } else {
+            grid.style.display = 'grid';
+            if (emptyMsg) emptyMsg.style.display = 'none';
         }
     },
 
@@ -71,24 +161,18 @@ const GalleryBuilder = {
     },
 
     createGalleryItem(data, index) {
-        // Create container
         const div = document.createElement('div');
         div.className = 'gallery-item';
 
-        // --- Aspect Ratio Logic ---
-        // Wide (Landscape) = width > height -> span 2 cols
-        // Portrait/Square = standard -> span 1 col
-        if (data.width && data.height) {
-            const aspect = data.width / data.height;
-            // Adjustable threshold. 1.2 means clearly landscape.
-            if (aspect >= 1.2) {
-                div.classList.add('wide');
-            }
+        // Wide layout for landscape images
+        if (data.width && data.height && data.width / data.height >= 1.2) {
+            div.classList.add('wide');
         }
 
-        div.dataset.category = data.category || this.getRandomCategory();
-        div.dataset.country = (data.country || 'unknown').toLowerCase();
-        div.dataset.year = data.year || '2025';
+        div.dataset.index = index;
+
+        // Fade in animation
+        div.style.animation = 'fadeIn 0.5s ease forwards';
 
         // Click to Open Modal
         div.addEventListener('click', () => Modal.open(index));
@@ -96,11 +180,9 @@ const GalleryBuilder = {
         // Create Image
         const img = document.createElement('img');
         img.src = `images/gallery/${data.filePath}`;
-        img.alt = `${div.dataset.category} photo from ${div.dataset.country}`;
+        img.alt = `Photo from ${(data.country || 'unknown')}`;
         img.loading = 'lazy';
         img.onerror = () => { img.src = CONFIG.placeholderImage; };
-
-        // Masonry Layout Handler
         img.onload = () => this.resizeGalleryItem(div);
 
         // Create Overlay
@@ -110,8 +192,7 @@ const GalleryBuilder = {
         const h4 = document.createElement('h4');
         const p = document.createElement('p');
 
-        // Build Overlay Content
-        // Line 1: Tech Specs
+        // Tech Specs
         const techSpecs = [];
         if (data.focalLength) techSpecs.push(`${data.focalLength}mm`);
         if (data.aperture) techSpecs.push(`f/${data.aperture}`);
@@ -121,13 +202,12 @@ const GalleryBuilder = {
         }
         h4.textContent = techSpecs.join(' · ');
 
-        // Line 2: Context
+        // Context
         const context = [];
         if (data.model || data.make) context.push(data.model || data.make);
         if (data.year) context.push(data.year);
         if (data.country) {
-            const countryName = data.country.charAt(0).toUpperCase() + data.country.slice(1);
-            context.push(countryName);
+            context.push(data.country.charAt(0).toUpperCase() + data.country.slice(1));
         }
         p.textContent = context.join(' · ');
 
@@ -139,32 +219,19 @@ const GalleryBuilder = {
         return div;
     },
 
-    getRandomCategory() {
-        const categories = ['nature', 'urban', 'portrait', 'travel'];
-        return categories[Math.floor(Math.random() * categories.length)];
-    },
-
     resizeGalleryItem(item) {
         const grid = document.querySelector(CONFIG.galleryGridSelector);
         if (!grid) return;
 
         const rowHeight = CONFIG.rowHeight;
-
-        // Dynamic row gap from CSS (handles mobile breakpoint changes)
         const rowGap = parseInt(window.getComputedStyle(grid).getPropertyValue('row-gap')) || CONFIG.rowGap;
-
-        // Find the image inside
         const img = item.querySelector('img');
         if (!img) return;
 
-        // Force a read to ensure layout is up to date
         const contentHeight = img.getBoundingClientRect().height;
-
-        // If image hasn't loaded or has 0 height, skip or retry
         if (contentHeight === 0) return;
 
         const rowSpan = Math.ceil((contentHeight + rowGap) / (rowHeight + rowGap));
-
         item.style.gridRowEnd = `span ${rowSpan}`;
     },
 
@@ -177,22 +244,23 @@ const GalleryBuilder = {
 // ===== Gallery Filter System =====
 const GalleryFilter = {
     currentFilterType: 'country',
-    galleryItems: null,
+    currentFilterValue: 'all',
     filterTabs: null,
     filterGroups: null,
 
     init() {
-        this.galleryItems = document.querySelectorAll('.gallery-item');
         this.filterTabs = document.querySelectorAll('.filter-tab');
         this.filterGroups = {
             country: document.getElementById('filter-country'),
             year: document.getElementById('filter-year')
         };
 
-        if (!this.galleryItems.length || !this.filterTabs.length) return;
+        if (!this.filterTabs.length) return;
 
         this.bindEvents();
-        this.showAllItems();
+
+        // Initial render with "All"
+        GalleryBuilder.renderFiltered(this.currentFilterType, 'all');
     },
 
     bindEvents() {
@@ -210,15 +278,20 @@ const GalleryFilter = {
 
     switchTab(tab) {
         const filterType = tab.dataset.filterType;
+
+        // Update tab UI
         this.filterTabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
 
+        // Show/hide filter groups
         Object.entries(this.filterGroups).forEach(([type, group]) => {
             if (!group) return;
             group.style.display = type === filterType ? 'flex' : 'none';
         });
 
+        // Reset to "All" for new filter type
         this.currentFilterType = filterType;
+        this.currentFilterValue = 'all';
 
         const activeGroup = this.filterGroups[filterType];
         if (activeGroup) {
@@ -226,78 +299,21 @@ const GalleryFilter = {
                 btn.classList.toggle('active', btn.dataset.filter === 'all');
             });
         }
-        this.showAllItems();
+
+        // Re-render with new filter type
+        GalleryBuilder.renderFiltered(filterType, 'all');
     },
 
     applyFilter(btn, group) {
+        // Update button UI
         group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
         const filterValue = btn.dataset.filter;
-        const filterType = this.currentFilterType;
-        let visibleCount = 0;
+        this.currentFilterValue = filterValue;
 
-        this.galleryItems.forEach(item => {
-            const itemValue = item.dataset[filterType];
-            const isMatch = filterValue === 'all' || itemValue === filterValue;
-
-            if (isMatch) {
-                item.classList.remove('hide');
-                item.style.display = ''; // Reset display for grid
-                item.style.animation = 'fadeIn 0.5s ease forwards';
-                GalleryBuilder.resizeGalleryItem(item);
-                visibleCount++;
-            } else {
-                item.classList.add('hide');
-                item.style.display = 'none';
-            }
-        });
-
-        // Trigger a global resize after filtering to be safe
-        setTimeout(() => GalleryBuilder.resizeAllGalleryItems(), 50);
-
-        // Handle empty state
-        this.updateEmptyState(visibleCount);
-    },
-
-    updateEmptyState(count) {
-        const grid = document.querySelector(CONFIG.galleryGridSelector);
-        let params = document.querySelector('.gallery-empty-message');
-
-        if (count === 0) {
-            grid.style.display = 'none';
-            if (!params) {
-                params = document.createElement('div');
-                params.className = 'gallery-empty-message';
-                params.textContent = 'No photos found in this category.';
-                params.style.textAlign = 'center';
-                params.style.padding = '50px';
-                params.style.color = '#666';
-                grid.parentNode.insertBefore(params, grid.nextSibling);
-            } else {
-                params.style.display = 'block';
-            }
-        } else {
-            grid.style.display = 'grid'; // Restore grid display
-            if (params) {
-                params.style.display = 'none';
-            }
-        }
-    },
-
-    showAllItems() {
-        this.galleryItems.forEach(item => {
-            item.classList.remove('hide');
-            item.style.display = '';
-            item.style.animation = 'fadeIn 0.5s ease forwards';
-            GalleryBuilder.resizeGalleryItem(item);
-        });
-
-        // Reset empty state
-        const grid = document.querySelector(CONFIG.galleryGridSelector);
-        const params = document.querySelector('.gallery-empty-message');
-        if (grid) grid.style.display = 'grid';
-        if (params) params.style.display = 'none';
+        // Re-render gallery with filter
+        GalleryBuilder.renderFiltered(this.currentFilterType, filterValue);
     }
 };
 
@@ -321,17 +337,14 @@ const Modal = {
 
         if (!this.modal) return;
 
-        // Events
         this.closeBtn.onclick = () => this.close();
         this.prevBtn.onclick = (e) => { e.stopPropagation(); this.prev(); };
         this.nextBtn.onclick = (e) => { e.stopPropagation(); this.next(); };
 
-        // Close on background click
         this.modal.onclick = (e) => {
             if (e.target === this.modal) this.close();
         };
 
-        // Keyboard navigation
         document.addEventListener('keydown', (e) => {
             if (!this.modal.classList.contains('active')) return;
             if (e.key === 'Escape') this.close();
@@ -341,11 +354,11 @@ const Modal = {
     },
 
     open(index) {
-        if (index < 0 || index >= GalleryBuilder.items.length) return;
+        if (index < 0 || index >= GalleryBuilder.filteredData.length) return;
         this.currentIndex = index;
         this.updateModalContent();
         this.modal.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Prevent scrolling
+        document.body.style.overflow = 'hidden';
     },
 
     close() {
@@ -354,20 +367,21 @@ const Modal = {
     },
 
     prev() {
-        this.currentIndex = (this.currentIndex - 1 + GalleryBuilder.items.length) % GalleryBuilder.items.length;
+        // Navigate within filtered data
+        this.currentIndex = (this.currentIndex - 1 + GalleryBuilder.filteredData.length) % GalleryBuilder.filteredData.length;
         this.updateModalContent();
     },
 
     next() {
-        this.currentIndex = (this.currentIndex + 1) % GalleryBuilder.items.length;
+        // Navigate within filtered data
+        this.currentIndex = (this.currentIndex + 1) % GalleryBuilder.filteredData.length;
         this.updateModalContent();
     },
 
     updateModalContent() {
-        const data = GalleryBuilder.items[this.currentIndex];
+        const data = GalleryBuilder.filteredData[this.currentIndex];
         this.img.src = `images/gallery/${data.filePath}`;
 
-        // Caption
         let exposure = '';
         if (data.exposureTime) {
             exposure = data.exposureTime < 1 ? `1/${Math.round(1 / data.exposureTime)}s` : `${data.exposureTime}s`;
@@ -379,7 +393,8 @@ const Modal = {
         if (exposure) techParts.push(exposure);
 
         const tech = techParts.join(' · ');
-        const ctx = `${data.model || ''} · ${data.year}`;
+        const country = data.country ? data.country.charAt(0).toUpperCase() + data.country.slice(1) : '';
+        const ctx = [data.model, data.year, country].filter(Boolean).join(' · ');
         this.caption.textContent = `${tech} | ${ctx}`;
     }
 };
