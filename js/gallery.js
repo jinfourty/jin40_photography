@@ -48,6 +48,8 @@ const ScrollToTop = {
     button: null,
     lastScrollY: 0,
     minScrollToShow: 300,
+    scrollThreshold: 50,  // Minimum scroll distance to trigger show/hide
+    hideTimeout: null,
 
     init() {
         this.button = document.getElementById('scrollToTop');
@@ -60,15 +62,34 @@ const ScrollToTop = {
 
     handleScroll() {
         const currentScrollY = window.scrollY;
+        const scrollDelta = this.lastScrollY - currentScrollY;
 
-        // Show button when scrolling up and past minimum scroll threshold
-        if (currentScrollY < this.lastScrollY && currentScrollY > this.minScrollToShow) {
-            this.button.classList.add('visible');
-        } else {
-            this.button.classList.remove('visible');
+        // Show button when scrolling up (with threshold) and past minimum scroll
+        if (scrollDelta > this.scrollThreshold && currentScrollY > this.minScrollToShow) {
+            this.showButton();
+        } else if (scrollDelta < -this.scrollThreshold || currentScrollY <= this.minScrollToShow) {
+            this.hideButton();
         }
 
         this.lastScrollY = currentScrollY;
+    },
+
+    showButton() {
+        // Clear any pending hide timeout
+        if (this.hideTimeout) {
+            clearTimeout(this.hideTimeout);
+            this.hideTimeout = null;
+        }
+        this.button.classList.add('visible');
+    },
+
+    hideButton() {
+        // Delay hiding slightly for better UX
+        if (this.hideTimeout) return;
+        this.hideTimeout = setTimeout(() => {
+            this.button.classList.remove('visible');
+            this.hideTimeout = null;
+        }, 100);
     },
 
     scrollToTop() {

@@ -533,6 +533,11 @@ html.snap-scroll section {
         grid-gap: 10px;
     }
 
+    /* Hide overlay on mobile - info available in modal */
+    .gallery-overlay {
+        display: none;
+    }
+
     .filter-tabs {
         flex-wrap: wrap;
     }
