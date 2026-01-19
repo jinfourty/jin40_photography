@@ -1,3 +1,14 @@
+// ===== Scroll Restoration Fix =====
+// Disable browser's automatic scroll restoration
+if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+}
+
+// Scroll to top on page load
+window.addEventListener('load', () => {
+    window.scrollTo(0, 0);
+});
+
 // ===== DOM Elements =====
 const navToggle = document.querySelector('.nav-toggle');
 const navMenu = document.querySelector('.nav-menu');
