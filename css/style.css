@@ -1059,13 +1059,35 @@ html.snap-scroll .footer {
 }
 
 @media (max-width: 768px) {
+
+    /* Compact Section Padding */
+    .hero {
+        padding: 80px 20px 40px;
+        min-height: 100vh;
+        /* Keep 100vh for snap */
+        justify-content: center;
+        /* Center content vertically */
+        gap: 30px;
+    }
+
+    section {
+        padding: 40px 0;
+        /* Reduced from 80px */
+    }
+
+    .page-header {
+        padding: 100px 20px 40px;
+    }
+
+    /* Navbar Compact */
     .navbar {
-        padding: 15px 20px;
+        padding: 10px 20px;
     }
 
     .nav-menu {
         position: fixed;
-        top: 60px;
+        top: 50px;
+        /* Adjusted for smaller navbar */
         left: 0;
         right: 0;
         background: white;
@@ -1077,51 +1099,65 @@ html.snap-scroll .footer {
         transition: var(--transition);
     }
 
-    .nav-menu.active {
-        transform: translateY(0);
-    }
-
-    .nav-menu li {
-        padding: 15px 0;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .nav-toggle {
-        display: flex;
-    }
-
-    .nav-toggle.active span:nth-child(1) {
-        transform: rotate(45deg) translate(5px, 5px);
-    }
-
-    .nav-toggle.active span:nth-child(2) {
-        opacity: 0;
-    }
-
-    .nav-toggle.active span:nth-child(3) {
-        transform: rotate(-45deg) translate(5px, -5px);
-    }
-
+    /* Typography Compact */
     .hero-content h1 {
         font-size: 2rem;
+        margin-bottom: 10px;
     }
 
     .hero-description {
         font-size: 1rem;
+        margin-bottom: 20px;
     }
 
     .section-title {
-        font-size: 2rem;
+        font-size: 1.8rem;
+        margin-bottom: 30px;
+    }
+
+    /* Hero Image */
+    .hero-image img {
+        height: 250px;
+        /* Reduced height */
+    }
+
+    /* About Section */
+    .about-content {
+        gap: 30px;
+    }
+
+    .about-image img {
+        height: 250px;
+    }
+
+    .about-text h3 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
     }
 
     .about-stats {
         justify-content: center;
+        gap: 20px;
+        margin-top: 20px;
     }
 
+    .stat-number {
+        font-size: 1.8rem;
+    }
+
+    /* Featured Grid */
     .featured-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
     }
 
+    .featured-item img {
+        height: 200px;
+        /* Smaller featured images */
+    }
+
+    /* Filter Tabs */
     .filter-tabs {
         gap: 5px;
     }
