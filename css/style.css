@@ -1178,7 +1178,8 @@ html.snap-scroll .footer {
     }
 
     .gallery-item img {
-        height: 150px;
+        height: auto;
+        /* Allow full aspect ratio */
     }
 
     .blog-grid {
@@ -1246,7 +1247,7 @@ html.snap-scroll .footer {
     }
 
     .gallery-item img {
-        height: 220px;
+        height: auto;
     }
 
     .filter-btn {
