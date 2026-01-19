@@ -82,6 +82,11 @@ ul {
     justify-content: space-between;
     align-items: center;
     box-shadow: var(--shadow);
+    transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.navbar.hidden {
+    transform: translateY(-100%);
 }
 
 .nav-brand a {
@@ -1087,7 +1092,6 @@ html.snap-scroll .footer {
     .nav-menu {
         position: fixed;
         top: 50px;
-        /* Adjusted for smaller navbar */
         left: 0;
         right: 0;
         background: white;
@@ -1097,6 +1101,26 @@ html.snap-scroll .footer {
         box-shadow: var(--shadow);
         transform: translateY(-150%);
         transition: var(--transition);
+    }
+
+    .nav-menu.active {
+        transform: translateY(0);
+    }
+
+    .nav-toggle {
+        display: flex;
+    }
+
+    .nav-toggle.active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .nav-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .nav-toggle.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(5px, -5px);
     }
 
     /* Typography Compact */

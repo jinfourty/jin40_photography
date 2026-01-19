@@ -41,6 +41,15 @@ const navbar = document.querySelector('.navbar');
 window.addEventListener('scroll', () => {
     const currentScroll = window.pageYOffset;
 
+    // Smart Navbar Logic
+    if (currentScroll > lastScroll && currentScroll > 80) {
+        // Scroll Down -> Hide
+        navbar.classList.add('hidden');
+    } else {
+        // Scroll Up -> Show
+        navbar.classList.remove('hidden');
+    }
+
     if (currentScroll > 100) {
         navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.15)';
     } else {
