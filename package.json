@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "add-photos": "node scripts/add-photos.js",
-    "resize-images": "node scripts/resize-images.js"
+    "resize-images": "node scripts/resize-images.js",
+    "build-blog": "node scripts/build-blog.js"
   },
   "keywords": [],
   "author": "",
