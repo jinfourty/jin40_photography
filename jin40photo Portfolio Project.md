@@ -46,7 +46,12 @@ jin40photo/
 - [x] sitemap.xml 생성
 - [x] robots.txt 추가
 - [x] 블로그 시스템 구축 완료
-- [ ] SEO 최적화 (추가 작업)
+- [x] SEO 최적화 완료 (2026-01-21)
+  - [x] 블로그 포스트 자동 sitemap 생성
+  - [x] 동적 메타 태그 (description, keywords, OG, Twitter Card)
+  - [x] 구조화된 데이터 (JSON-LD BlogPosting)
+  - [x] Canonical URL 설정
+  - [x] 한국어 검색 최적화
 
 ---
 
@@ -139,9 +144,17 @@ npm run add-photos
 </figure>
 ```
 
-### Step 4: 빌드 (index.json 자동 생성)
+### Step 4: 빌드 (index.json + sitemap.xml 자동 생성)
 ```bash
-npm run build-blog
+npm run build-all
+```
+- `posts/index.json` 생성 (블로그 목록)
+- `sitemap.xml` 업데이트 (구글 검색 최적화)
+
+또는 개별 실행:
+```bash
+npm run build-blog      # index.json만
+npm run build-sitemap   # sitemap.xml만
 ```
 
 ### Step 5: 배포
@@ -150,6 +163,16 @@ npm run build-blog
 # 또는
 npm run deploy-quick
 ```
+
+### Step 6: Google Search Console 색인 요청 (선택)
+1. https://search.google.com/search-console 접속
+2. 상단 검색창에 포스트 URL 입력:
+   ```
+   https://jin40photo.com/post.html?slug=파일명
+   ```
+3. **색인 생성 요청** 클릭
+
+**참고:** 색인 요청하면 구글 검색에 1-3일 내 노출 가능
 
 ---
 
@@ -200,12 +223,18 @@ npx live-server
 
 ## Scripts Reference (스크립트 목록)
 
-### 사진 및 블로그 관련
+### 사진 관련
 | Command | Script | Description |
 |---------|--------|-------------|
 | `npm run add-photos` | `scripts/add-photos.js` | 새 사진 추가 (리사이즈 + 메타데이터) |
 | `npm run resize-images` | `scripts/resize-images.js` | 기존 이미지 리사이즈 |
+
+### 블로그 및 SEO 관련
+| Command | Script | Description |
+|---------|--------|-------------|
 | `npm run build-blog` | `scripts/build-blog.js` | 블로그 index.json 자동 생성 |
+| `npm run build-sitemap` | `scripts/build-sitemap.js` | sitemap.xml 자동 생성 (SEO) |
+| `npm run build-all` | - | blog + sitemap 한번에 빌드 |
 
 ### 배포 관련
 | Command | Description |
@@ -213,6 +242,51 @@ npx live-server
 | `./deploy.sh "메시지"` | 한 명령어로 배포 (커밋 메시지 지정) |
 | `npm run deploy` | 에디터로 커밋 메시지 작성 후 배포 |
 | `npm run deploy-quick` | "Update site" 메시지로 자동 배포 |
+
+---
+
+## SEO 최적화 (Search Engine Optimization)
+
+### 구현된 SEO 기능
+
+#### 1. 자동 Sitemap 생성
+- 모든 블로그 포스트가 sitemap.xml에 자동 추가
+- Google이 새 콘텐츠를 빠르게 발견 가능
+- 명령어: `npm run build-sitemap`
+
+#### 2. 동적 메타 태그
+각 블로그 포스트마다 자동 생성:
+- **SEO 메타 태그**: description, keywords
+- **Open Graph**: Facebook, LinkedIn 등 소셜 미디어 공유
+- **Twitter Card**: 트위터 공유 최적화
+- **Canonical URL**: 중복 콘텐츠 방지
+
+#### 3. 구조화된 데이터 (JSON-LD)
+- Google의 리치 스니펫 지원
+- BlogPosting 스키마 사용
+- 검색 결과에 작성자, 날짜, 이미지 표시
+
+#### 4. 한국어 검색 최적화
+- `lang="ko"` 속성 설정
+- 한국어 키워드 자동 포함
+- 한글 검색어 최적화
+
+### Google Search Console 활용
+
+#### 새 포스트 색인 요청 방법
+1. https://search.google.com/search-console 접속
+2. 상단 검색창에 URL 입력
+3. "색인 생성 요청" 클릭
+
+#### Sitemap 제출 (최초 1회)
+1. Google Search Console → Sitemaps
+2. `sitemap.xml` 제출
+3. 이후 자동으로 크롤링됨
+
+### 검색 노출 예상 시간
+- **Google 크롤링**: 1-3일
+- **검색 결과 노출**: 1-7일
+- **순위 상승**: 2-4주 (콘텐츠 품질에 따라)
 
 ---
 

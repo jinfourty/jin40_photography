@@ -46,6 +46,13 @@ scripts/
 - [x] 3.2 블로그 그리드 레이아웃 개선 (PC 3열, 모바일 1열)
 - [ ] 3.3 (선택) GitHub Actions로 push 시 자동 빌드
 
+### Phase 4: SEO Optimization ✅
+- [x] 4.1 Sitemap 자동 생성 스크립트 (`scripts/build-sitemap.js`)
+- [x] 4.2 동적 메타 태그 설정 (SEO, OG, Twitter Card)
+- [x] 4.3 구조화된 데이터 (JSON-LD BlogPosting)
+- [x] 4.4 Canonical URL 설정
+- [x] 4.5 한국어 검색 최적화 (lang="ko", 한글 키워드)
+
 ---
 
 ## How to Write a New Blog Post
@@ -72,11 +79,20 @@ excerpt: 블로그 목록에 표시될 요약 문구
 
 ### Step 3: Build & Deploy
 ```bash
-npm run build-blog
-git add .
-git commit -m "Add new blog post"
-git push
+# 블로그 index.json + sitemap.xml 자동 생성
+npm run build-all
+
+# 배포
+./deploy.sh "Add new blog post: 포스트 제목"
 ```
+
+### Step 4: Google Search Console 색인 요청 (선택)
+새 포스트를 빠르게 구글 검색에 노출시키려면:
+1. https://search.google.com/search-console 접속
+2. 상단 검색창에 URL 입력: `https://jin40photo.com/post.html?slug=파일명`
+3. "색인 생성 요청" 클릭
+
+**예상 노출 시간**: 1-3일 (색인 요청 시), 1-7일 (자동 크롤링)
 
 ---
 
@@ -189,13 +205,89 @@ images/blog/
 | 2026-01-21 | HTML 지원 활성화 (marked.js 설정) | ✅ Done |
 | 2026-01-21 | 이미지 캡션 CSS 추가 | ✅ Done |
 | 2026-01-21 | 블로그 전용 이미지 폴더 생성 (images/blog/) | ✅ Done |
+| 2026-01-21 | Phase 4 완료 (SEO 최적화) | ✅ Done |
+| 2026-01-21 | Sitemap 자동 생성 스크립트 | ✅ Done |
+| 2026-01-21 | 동적 메타 태그 및 구조화된 데이터 | ✅ Done |
 
 ---
 
 ## Notes
 - `_`로 시작하는 파일은 빌드 시 자동 제외
-- 파일명 형식: `YYYY-MM-DD-slug-name.md`
+- 파일명 형식: `YYYY-MM-DD-slug-name.md` (영문 권장)
 - 이미지는 `images/blog/` 또는 `images/gallery/` 사용
 - `.nojekyll` 파일로 GitHub Pages에서 .md 파일 직접 서빙
 - **마크다운에 HTML 태그 사용 가능**: `<iframe>`, `<figure>`, `<div>` 등 자유롭게 사용
 - **캡션 스타일**: 가운데 정렬, 회색 작은 글씨, 이탤릭체
+
+---
+
+## SEO Optimization (검색 엔진 최적화)
+
+### 자동 적용되는 SEO 기능
+
+#### 1. Sitemap 자동 생성
+- `npm run build-sitemap` 실행 시 모든 블로그 포스트가 sitemap.xml에 추가
+- Google이 새 콘텐츠를 자동으로 발견
+
+#### 2. 동적 메타 태그
+각 포스트마다 자동 생성:
+```html
+<meta name="description" content="포스트 excerpt">
+<meta name="keywords" content="포스트 제목, 사진, photography, 카테고리, 여행, 일본, 고양이">
+
+<!-- Open Graph (소셜 미디어) -->
+<meta property="og:title" content="포스트 제목">
+<meta property="og:description" content="포스트 excerpt">
+<meta property="og:image" content="썸네일 이미지">
+<meta property="og:url" content="포스트 URL">
+
+<!-- JSON-LD 구조화된 데이터 -->
+<script type="application/ld+json">
+{
+  "@type": "BlogPosting",
+  "headline": "포스트 제목",
+  ...
+}
+</script>
+```
+
+#### 3. 검색 키워드 최적화
+- 포스트 제목이 keywords에 자동 포함
+- 카테고리 키워드 추가
+- 한국어 공통 키워드: 사진, photography, 여행
+- 특정 키워드는 포스트 내용에서 자연스럽게 사용
+
+#### 4. URL 구조
+```
+https://jin40photo.com/post.html?slug=2026-01-21-ainoshima-cats
+```
+- SEO 친화적인 slug 사용
+- 날짜와 주제가 포함된 명확한 구조
+
+### Google Search Console 활용
+
+#### 초기 설정 (최초 1회)
+1. https://search.google.com/search-console 접속
+2. Sitemaps 메뉴에서 `sitemap.xml` 제출
+
+#### 새 포스트 색인 요청
+1. 상단 검색창에 포스트 URL 입력
+2. "색인 생성 요청" 클릭
+3. 1-3일 내 구글 검색 결과에 노출
+
+### 검색어 예시 (자동 최적화)
+- "아이노시마" → 포스트 제목에 포함
+- "아이노 섬" → 본문 내용에 자연스럽게 사용
+- "일본 고양이섬" → 본문 키워드
+- "후쿠오카 여행" → 카테고리 + 지역명
+- "고양이 사진" → 내용 + 공통 키워드
+
+### SEO 체크리스트
+- [x] Sitemap 생성 및 제출
+- [x] 메타 태그 자동 생성
+- [x] Open Graph 설정
+- [x] 구조화된 데이터 (JSON-LD)
+- [x] Canonical URL
+- [x] 한국어 lang 속성
+- [x] 키워드 자동 포함
+- [ ] 정기적인 색인 요청 (새 포스트마다)
