@@ -1479,6 +1479,35 @@ html.snap-scroll .footer {
     box-shadow: var(--shadow);
 }
 
+/* Figure with caption styles */
+.markdown-body figure {
+    margin: 30px 0;
+    text-align: center;
+}
+
+.markdown-body figure img {
+    margin: 0 auto;
+    display: block;
+}
+
+.markdown-body figcaption {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    text-align: center;
+    font-style: italic;
+}
+
+/* Alternative caption style (for text after images) */
+.markdown-body p em {
+    display: block;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-top: -20px;
+    margin-bottom: 20px;
+}
+
 .markdown-body ul,
 .markdown-body ol {
     margin: 20px 0;

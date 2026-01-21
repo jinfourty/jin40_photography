@@ -7,7 +7,8 @@ const readline = require('readline');
 // ===== Configuration =====
 const CONFIG = {
     inputDir: path.join(__dirname, '../images/new'),
-    outputDir: path.join(__dirname, '../images/gallery'),
+    galleryOutputDir: path.join(__dirname, '../images/gallery'),
+    blogOutputDir: path.join(__dirname, '../images/blog'),
     metadataPath: path.join(__dirname, '../data/metadata.json'),
     supportedFormats: ['.jpg', '.jpeg', '.png', '.webp', '.tiff', '.heic'],
     maxWidth: 1600,
@@ -78,6 +79,7 @@ async function extractExif(imagePath) {
 async function convertToWebp(inputPath, outputPath) {
     try {
         await sharp(inputPath)
+            .rotate() // Auto-rotate based on EXIF orientation
             .resize(CONFIG.maxWidth, CONFIG.maxHeight, {
                 fit: 'inside',
                 withoutEnlargement: true
@@ -131,22 +133,52 @@ async function main() {
     // Interactive prompts
     const rl = createReadlineInterface();
 
-    const country = await askQuestion(rl, 'Country (e.g., japan, korea, vietnam): ');
-    if (!country) {
-        console.log('Country is required. Aborting.');
+    // Ask for type: Gallery or Blog
+    const photoType = await askQuestion(rl, 'Photo type - [g]allery or [b]log? (g/b): ');
+    const isGallery = !photoType || photoType.toLowerCase() === 'g' || photoType.toLowerCase() === 'gallery';
+    const isBlog = photoType.toLowerCase() === 'b' || photoType.toLowerCase() === 'blog';
+
+    if (!isGallery && !isBlog) {
+        console.log('Invalid choice. Aborting.');
         rl.close();
         return;
     }
 
-    let year = await askQuestion(rl, 'Year (press Enter for auto-detect from EXIF): ');
+    let country, year, folderName;
+
+    if (isGallery) {
+        country = await askQuestion(rl, 'Country (e.g., japan, korea, vietnam): ');
+        if (!country) {
+            console.log('Country is required. Aborting.');
+            rl.close();
+            return;
+        }
+        year = await askQuestion(rl, 'Year (press Enter for auto-detect from EXIF): ');
+    } else {
+        // Blog type
+        folderName = await askQuestion(rl, 'Folder name (e.g., 2026-01-21 or my-trip): ');
+        if (!folderName) {
+            console.log('Folder name is required. Aborting.');
+            rl.close();
+            return;
+        }
+    }
 
     rl.close();
 
-    // Create output directory
-    const outputSubDir = year
-        ? `${year}-${country.toLowerCase()}`
-        : `new-${country.toLowerCase()}`;
-    const fullOutputDir = path.join(CONFIG.outputDir, outputSubDir);
+    // Create output directory based on type
+    let fullOutputDir, outputSubDir;
+
+    if (isGallery) {
+        outputSubDir = year
+            ? `${year}-${country.toLowerCase()}`
+            : `new-${country.toLowerCase()}`;
+        fullOutputDir = path.join(CONFIG.galleryOutputDir, outputSubDir);
+    } else {
+        // Blog type
+        outputSubDir = folderName;
+        fullOutputDir = path.join(CONFIG.blogOutputDir, outputSubDir);
+    }
 
     if (!fs.existsSync(fullOutputDir)) {
         fs.mkdirSync(fullOutputDir, { recursive: true });
@@ -157,10 +189,12 @@ async function main() {
         ? fs.readdirSync(fullOutputDir).filter(f => f.endsWith('.webp'))
         : [];
 
-    // Load existing metadata
-    const metadata = loadMetadata();
+    // Load existing metadata (only for gallery)
+    const metadata = isGallery ? loadMetadata() : null;
 
     console.log('\nProcessing images...\n');
+    console.log(`Target: ${isGallery ? 'Gallery' : 'Blog'}`);
+    console.log(`Output: ${fullOutputDir}\n`);
 
     let successCount = 0;
 
@@ -175,30 +209,53 @@ async function main() {
         console.log(`  - Size: ${exifData.width}x${exifData.height}`);
         if (exifData.model) console.log(`  - Camera: ${exifData.model}`);
 
-        // Determine year from EXIF if not provided
-        let photoYear = year;
-        if (!photoYear && exifData.dateTimeOriginal) {
-            const date = new Date(exifData.dateTimeOriginal);
-            photoYear = date.getFullYear().toString();
-            console.log(`  - Year (from EXIF): ${photoYear}`);
-        }
-        if (!photoYear) {
-            photoYear = new Date().getFullYear().toString();
-            console.log(`  - Year (default): ${photoYear}`);
+        let finalOutputDir, finalOutputSubDir, outputFilename;
+
+        if (isGallery) {
+            // Gallery: determine year from EXIF if not provided
+            let photoYear = year;
+            if (!photoYear && exifData.dateTimeOriginal) {
+                const date = new Date(exifData.dateTimeOriginal);
+                photoYear = date.getFullYear().toString();
+                console.log(`  - Year (from EXIF): ${photoYear}`);
+            }
+            if (!photoYear) {
+                photoYear = new Date().getFullYear().toString();
+                console.log(`  - Year (default): ${photoYear}`);
+            }
+
+            // Update output directory if year was auto-detected
+            finalOutputSubDir = `${photoYear}-${country.toLowerCase()}`;
+            finalOutputDir = path.join(CONFIG.galleryOutputDir, finalOutputSubDir);
+            if (!fs.existsSync(finalOutputDir)) {
+                fs.mkdirSync(finalOutputDir, { recursive: true });
+            }
+
+            // Get existing files count for this specific directory
+            const dirExistingFiles = fs.readdirSync(finalOutputDir).filter(f => f.endsWith('.webp'));
+
+            // Generate output filename
+            outputFilename = `photo${dirExistingFiles.length + 1}.webp`;
+        } else {
+            // Blog: use simple sequential naming or keep original name
+            finalOutputDir = fullOutputDir;
+            finalOutputSubDir = outputSubDir;
+
+            // Get existing files count
+            const dirExistingFiles = fs.readdirSync(finalOutputDir).filter(f => f.endsWith('.webp'));
+
+            // Keep original filename (without extension) or use sequential naming
+            const originalName = path.parse(file).name.toLowerCase().replace(/\s+/g, '-');
+            const possibleFilename = `${originalName}.webp`;
+
+            // Check if file already exists, if so use sequential naming
+            if (fs.existsSync(path.join(finalOutputDir, possibleFilename))) {
+                outputFilename = `photo${dirExistingFiles.length + 1}.webp`;
+            } else {
+                outputFilename = possibleFilename;
+            }
         }
 
-        // Update output directory if year was auto-detected
-        const finalOutputSubDir = `${photoYear}-${country.toLowerCase()}`;
-        const finalOutputDir = path.join(CONFIG.outputDir, finalOutputSubDir);
-        if (!fs.existsSync(finalOutputDir)) {
-            fs.mkdirSync(finalOutputDir, { recursive: true });
-        }
-
-        // Get existing files count for this specific directory
-        const dirExistingFiles = fs.readdirSync(finalOutputDir).filter(f => f.endsWith('.webp'));
-
-        // Generate output filename
-        const outputFilename = `photo${dirExistingFiles.length + 1}.webp`;
         const outputPath = path.join(finalOutputDir, outputFilename);
 
         // Convert to webp
@@ -208,29 +265,35 @@ async function main() {
             // Get final image dimensions
             const finalMetadata = await sharp(outputPath).metadata();
 
-            // Create metadata entry
-            const entry = {
-                filename: outputFilename,
-                width: finalMetadata.width,
-                height: finalMetadata.height,
-                format: 'webp',
-                make: exifData.make,
-                model: exifData.model,
-                aperture: exifData.aperture,
-                exposureTime: exifData.exposureTime,
-                iso: exifData.iso,
-                focalLength: exifData.focalLength,
-                lensModel: exifData.lensModel,
-                dateTimeOriginal: exifData.dateTimeOriginal ? new Date(exifData.dateTimeOriginal).toISOString() : null,
-                filePath: `${finalOutputSubDir}/${outputFilename}`,
-                year: photoYear,
-                country: country.toLowerCase()
-            };
+            if (isGallery) {
+                // Create metadata entry for gallery
+                const entry = {
+                    filename: outputFilename,
+                    width: finalMetadata.width,
+                    height: finalMetadata.height,
+                    format: 'webp',
+                    make: exifData.make,
+                    model: exifData.model,
+                    aperture: exifData.aperture,
+                    exposureTime: exifData.exposureTime,
+                    iso: exifData.iso,
+                    focalLength: exifData.focalLength,
+                    lensModel: exifData.lensModel,
+                    dateTimeOriginal: exifData.dateTimeOriginal ? new Date(exifData.dateTimeOriginal).toISOString() : null,
+                    filePath: `${finalOutputSubDir}/${outputFilename}`,
+                    year: finalOutputSubDir.split('-')[0], // Extract year from folder name
+                    country: country.toLowerCase()
+                };
 
-            // Add to metadata array (at the beginning for newest first)
-            metadata.unshift(entry);
+                // Add to metadata array (at the beginning for newest first)
+                metadata.unshift(entry);
 
-            console.log(`  - Saved: ${entry.filePath}`);
+                console.log(`  - Saved: ${entry.filePath}`);
+            } else {
+                // Blog: just log the saved path
+                console.log(`  - Saved: images/blog/${finalOutputSubDir}/${outputFilename}`);
+            }
+
             successCount++;
 
             // Delete original file
@@ -243,12 +306,18 @@ async function main() {
         console.log('');
     }
 
-    // Save updated metadata
-    saveMetadata(metadata);
+    // Save updated metadata (only for gallery)
+    if (isGallery) {
+        saveMetadata(metadata);
+    }
 
     console.log('========================================');
     console.log(`Done! ${successCount}/${imageFiles.length} photos processed.`);
-    console.log(`Metadata updated: ${CONFIG.metadataPath}`);
+    if (isGallery) {
+        console.log(`Metadata updated: ${CONFIG.metadataPath}`);
+    } else {
+        console.log(`Blog images saved to: ${fullOutputDir}`);
+    }
     console.log('========================================\n');
 }
 

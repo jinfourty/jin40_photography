@@ -173,7 +173,9 @@ const BlogSystem = {
             if (typeof marked !== 'undefined') {
                 marked.setOptions({
                     breaks: true,
-                    gfm: true
+                    gfm: true,
+                    // Allow HTML tags in markdown (for iframe, etc.)
+                    // marked.js by default preserves HTML in the output
                 });
                 postBody.innerHTML = marked.parse(content);
             } else {

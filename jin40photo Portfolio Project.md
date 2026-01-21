@@ -10,37 +10,146 @@ tags:
 - CDN: Cloudflare
 
 ## 프로젝트 구조
-- index.html: 홈페이지
-- gallery.html: 사진 갤러리
-- blog.html: 블로그
-- css/style.css: 스타일시트
-- js/main.js: JavaScript
-- images/: 사진 폴더
+```
+jin40photo/
+├── index.html          # 홈페이지 (home.html로 리다이렉트)
+├── home.html           # 메인 페이지
+├── gallery.html        # 사진 갤러리
+├── blog.html           # 블로그 목록
+├── post.html           # 블로그 포스트 뷰어
+├── css/style.css       # 스타일시트
+├── js/
+│   ├── main.js         # 메인 JavaScript
+│   ├── gallery.js      # 갤러리 기능
+│   └── blog.js         # 블로그 기능
+├── images/
+│   ├── gallery/        # 갤러리 사진
+│   ├── hero/           # 히어로 이미지
+│   └── new/            # 새 사진 업로드용 (임시)
+├── posts/              # 블로그 포스트 (.md 파일)
+├── data/
+│   └── metadata.json   # 갤러리 메타데이터
+├── scripts/            # 빌드 스크립트
+├── sitemap.xml         # 사이트맵
+├── robots.txt          # 검색엔진 크롤러 설정
+└── .nojekyll           # Jekyll 비활성화
+```
 
 ## 현재 진행 상황
 - [x] GitHub Pages 배포 완료
 - [x] 커스텀 도메인 연결 (jin40photo.com)
-- [x] Cloudflare DNS 설정
+- [x] Cloudflare DNS 및 SSL 설정 (Full strict)
 - [x] Open Graph 메타 태그 추가 (모든 페이지)
 - [x] Google Analytics 설정 (G-XHMYGCR88L)
+- [x] Google Search Console 등록 및 sitemap 제출
 - [x] sitemap.xml 생성
+- [x] robots.txt 추가
+- [x] 블로그 시스템 구축 완료
 - [ ] SEO 최적화 (추가 작업)
 
-## 다음 할 일
-1. robots.txt 추가 (선택)
-2. 구조화된 데이터(JSON-LD) 추가 (선택)
-3. 페이지 속도 최적화
+---
 
-## How to Upload Pictures
+## How to Upload Photos (갤러리에 사진 추가)
+
+### Step 1: 새 사진을 임시 폴더에 넣기
 ```
-cd /Users/YongjooJin/my-portfolio
+images/new/ 폴더에 사진 파일 복사
+```
+
+### Step 2: 스크립트 실행
+```bash
 npm run add-photos
 ```
+- 국가, 연도 등 정보 입력 프롬프트가 표시됨
+- 자동으로 리사이즈 및 webp 변환
+- `images/gallery/` 폴더로 이동
+- `data/metadata.json` 자동 업데이트
 
-## How to Update Site
+### Step 3: 배포
+```bash
+git add .
+git commit -m "Add new photos"
+git push
 ```
-cd /Users/YongjooJin/my-portfolio
+
+---
+
+## How to Resize Existing Images (기존 이미지 리사이즈)
+
+```bash
+npm run resize-images
+```
+- `images/gallery/` 내 모든 이미지를 최대 1600x1600으로 리사이즈
+- 품질: 82%
+
+---
+
+## How to Write a Blog Post (블로그 포스트 작성)
+
+### Step 1: 템플릿 복사
+```bash
+cp posts/_template.md posts/2026-01-20-my-post.md
+```
+
+### Step 2: 내용 작성
+```markdown
+---
+title: 포스트 제목
+date: 2026-01-20
+category: Travel
+thumbnail: images/gallery/2024-thailand/DSCF3656.webp
+excerpt: 블로그 목록에 표시될 요약 문구
+---
+
+본문 내용 작성 (마크다운 형식)
+
+![이미지 설명](images/gallery/2024-thailand/DSCF3671.webp)
+```
+
+### Step 3: 빌드 (index.json 자동 생성)
+```bash
+npm run build-blog
+```
+
+### Step 4: 배포
+```bash
+git add .
+git commit -m "Add new blog post"
+git push
+```
+
+---
+
+## How to Update Site (사이트 업데이트)
+
+```bash
 git add .
 git commit -m "변경 내용 설명"
 git push
 ```
+
+---
+
+## How to Run Local Development Server
+
+```bash
+npx live-server
+```
+- 브라우저에서 http://localhost:8080 접속
+- 파일 변경 시 자동 새로고침
+
+---
+
+## Scripts Reference (스크립트 목록)
+
+| Command | Script | Description |
+|---------|--------|-------------|
+| `npm run add-photos` | `scripts/add-photos.js` | 새 사진 추가 (리사이즈 + 메타데이터) |
+| `npm run resize-images` | `scripts/resize-images.js` | 기존 이미지 리사이즈 |
+| `npm run build-blog` | `scripts/build-blog.js` | 블로그 index.json 자동 생성 |
+
+---
+
+## Related Documents
+- `blogplan.md` - 블로그 시스템 상세 계획 및 진행 상황
+- `posts/_template.md` - 블로그 포스트 템플릿
