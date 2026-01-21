@@ -1321,6 +1321,15 @@ html.snap-scroll .footer {
         font-size: 1.1rem;
     }
 
+    /* Optimized Mobile Blog Content Width */
+    .post-content {
+        padding: 30px 0;
+    }
+
+    .post-content .container {
+        padding: 0 15px;
+    }
+
     .related-grid {
         grid-template-columns: 1fr;
     }
