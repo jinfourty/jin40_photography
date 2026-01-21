@@ -119,6 +119,104 @@ const BlogSystem = {
         }
     },
 
+    // Update meta tags for SEO and social sharing
+    updateMetaTags(metadata, slug) {
+        const baseUrl = 'https://jin40photo.com';
+        const postUrl = `${baseUrl}/post.html?slug=${slug}`;
+        const thumbnailUrl = metadata.thumbnail ? `${baseUrl}/${metadata.thumbnail}` : `${baseUrl}/images/hero/hero-photo.webp`;
+
+        // Update or create meta tags
+        const metaTags = {
+            // Basic meta
+            'description': metadata.excerpt || metadata.title,
+            'keywords': `${metadata.title}, 사진, photography, ${metadata.category}, 여행, 일본, 고양이`,
+
+            // Open Graph
+            'og:title': metadata.title,
+            'og:description': metadata.excerpt || metadata.title,
+            'og:image': thumbnailUrl,
+            'og:url': postUrl,
+            'og:type': 'article',
+
+            // Twitter Card
+            'twitter:card': 'summary_large_image',
+            'twitter:title': metadata.title,
+            'twitter:description': metadata.excerpt || metadata.title,
+            'twitter:image': thumbnailUrl,
+
+            // Article specific
+            'article:published_time': metadata.date,
+            'article:author': 'jin40_photography',
+            'article:section': metadata.category
+        };
+
+        // Update existing or create new meta tags
+        Object.entries(metaTags).forEach(([name, content]) => {
+            const isProperty = name.startsWith('og:') || name.startsWith('article:');
+            const attribute = isProperty ? 'property' : 'name';
+
+            let meta = document.querySelector(`meta[${attribute}="${name}"]`);
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.setAttribute(attribute, name);
+                document.head.appendChild(meta);
+            }
+            meta.setAttribute('content', content);
+        });
+
+        // Update canonical URL
+        let canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) {
+            canonical = document.createElement('link');
+            canonical.setAttribute('rel', 'canonical');
+            document.head.appendChild(canonical);
+        }
+        canonical.setAttribute('href', postUrl);
+
+        // Add JSON-LD structured data for better SEO
+        this.addStructuredData(metadata, slug, postUrl, thumbnailUrl);
+    },
+
+    // Add structured data (JSON-LD) for rich snippets
+    addStructuredData(metadata, slug, postUrl, thumbnailUrl) {
+        // Remove existing structured data if any
+        const existingScript = document.querySelector('script[type="application/ld+json"]');
+        if (existingScript) {
+            existingScript.remove();
+        }
+
+        const structuredData = {
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "headline": metadata.title,
+            "description": metadata.excerpt || metadata.title,
+            "image": thumbnailUrl,
+            "datePublished": metadata.date,
+            "dateModified": metadata.date,
+            "author": {
+                "@type": "Person",
+                "name": "jin40_photography"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "jin40_photography",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://jin40photo.com/images/hero/hero-photo.webp"
+                }
+            },
+            "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": postUrl
+            }
+        };
+
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.textContent = JSON.stringify(structuredData);
+        document.head.appendChild(script);
+    },
+
     // Render single post (for post.html)
     async renderPost() {
         const postTitle = document.getElementById('post-title');
@@ -167,7 +265,10 @@ const BlogSystem = {
             }
 
             // Update page title
-            document.title = `${metadata.title} - Photography Portfolio`;
+            document.title = `${metadata.title} - jin40_photography`;
+
+            // Update meta tags for SEO and social sharing
+            this.updateMetaTags(metadata, slug);
 
             // Render markdown content
             if (typeof marked !== 'undefined') {
