@@ -1823,11 +1823,17 @@ html.snap-scroll .footer {
 
     /* Ensure images are full width and have no radius */
     .markdown-body img {
-        border-radius: 0;
-        width: 100%;
-        margin: 30px 0;
-        box-shadow: none;
-        /* Optional: remove shadow for cleaner mobile look */
+        border-radius: 8px;
+        /* Restore rounded corners */
+        width: auto;
+        /* Allow auto width to respect max-width */
+        max-width: 100%;
+        /* Ensure it doesn't overflow */
+        margin: 30px 15px;
+        /* Add side margins */
+        box-shadow: var(--shadow);
+        /* Restore shadow */
+        display: block;
     }
 
     /* Also handle the featured image at the top */
