@@ -1259,6 +1259,13 @@ html.snap-scroll .footer {
     .nav-menu li:last-child {
         margin-top: 0;
         border-bottom: none;
+        /* Disable transform to allow absolute positioning relative to .nav-menu */
+        transform: none !important;
+        opacity: 1 !important;
+        position: static;
+        width: auto;
+        height: 0;
+        /* Don't take up space in the flow */
     }
 
     .lang-switcher {
