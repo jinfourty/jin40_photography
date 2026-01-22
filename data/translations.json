@@ -50,19 +50,19 @@
             "jp": "私について"
         },
         "subtitle": {
-            "en": "Just a hobby photographer",
+            "en": "Just a hobbyist photographer",
             "ko": "취미 사진가",
             "jp": "趣味の写真家"
         },
         "p1": {
-            "en": "Based in Seoul, capturing moments that inspire me. I shoot with a Fujifilm X-T30 and a Ricoh GR IIIx.",
-            "ko": "서울을 기반으로 영감을 주는 순간들을 담고 있습니다. 후지필름 X-T30과 리코 GR IIIx를 주로 사용합니다.",
-            "jp": "ソウルを拠点に、インスピレーションを受ける瞬間を撮影しています。主にFujifilm X-T30とRicoh GR IIIxを使用しています。"
+            "en": "Based in Seoul, archiving moments and stories. Shooting with Fujifilm X-T30 and Ricoh GR IIIx.",
+            "ko": "남길만한 순간과 이야기를 기록합니다. Fujifilm X-T30, Ricoh GR IIIx로 촬영되었습니다.",
+            "jp": "ソウルを拠点に、瞬間と物語を記録しています。Fujifilm X-T30、Ricoh GR IIIxで撮影しました。"
         },
         "p2": {
-            "en": "This portfolio showcases photographs from my travels across various countries. Each image tells a story from the places I've explored.",
-            "ko": "이 포트폴리오는 여러 나라를 여행하며 찍은 사진들을 소개합니다. 각 사진에는 제가 탐험한 장소들의 이야기가 담겨 있습니다.",
-            "jp": "このポートフォリオでは、様々な国を旅して撮影した写真を紹介しています。各画像は、私が探索した場所の物語を語っています。"
+            "en": "This portfolio showcases photographs from my experiences across various countries. Each image tells a story from the places I've explored.",
+            "ko": "여러 나라를 거치며 마주한 순간을 담은 포트폴리오입니다. 저의 발자취가 남은 사진 속 이야기를 만나보세요.",
+            "jp": "国々を巡り、その地で向き合った瞬間を収めたポートフォリオです。歩んできた足跡とともに, 写真が語る物語をご覧ください。"
         }
     },
     "featured": {
