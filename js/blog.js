@@ -251,6 +251,14 @@ const BlogSystem = {
                 postBody.innerHTML = this.simpleMarkdownRender(content);
             }
 
+            // Initialize Lightbox for Blog Images
+            if (window.initImageModal) {
+                // Short timeout to ensure DOM is ready
+                setTimeout(() => {
+                    window.initImageModal('#post-body img');
+                }, 100);
+            }
+
             if (postLoading) postLoading.style.display = 'none';
 
             // IMPORTANT: Render related posts with correct language

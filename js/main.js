@@ -101,87 +101,124 @@ if (filterBtns.length > 0 && galleryItems.length > 0) {
     });
 }
 
-// ===== Gallery Modal =====
-let currentImageIndex = 0;
-let visibleImages = [];
+// ===== Reusable Lightbox Modal Logic =====
+window.initImageModal = function (selector) {
+    const images = document.querySelectorAll(selector);
+    if (images.length === 0) return;
 
-function updateVisibleImages() {
-    visibleImages = Array.from(galleryItems).filter(item => !item.classList.contains('hide'));
-}
+    let visibleImages = Array.from(images).filter(img => {
+        // For gallery items, check if parent is hidden
+        const item = img.closest('.gallery-item');
+        return item ? !item.classList.contains('hide') : true;
+    });
 
-function openModal(index) {
-    updateVisibleImages();
-    currentImageIndex = index;
+    let currentImageIndex = 0;
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImage');
+    const modalCaption = document.getElementById('modalCaption');
+    const modalClose = document.querySelector('.modal-close');
+    const modalPrev = document.querySelector('.modal-prev');
+    const modalNext = document.querySelector('.modal-next');
 
-    const item = visibleImages[index];
-    const img = item.querySelector('img');
-    const title = item.querySelector('h4')?.textContent || '';
+    if (!modal) return;
 
-    modal.classList.add('active');
-    modalImg.src = img.src;
-    modalCaption.textContent = title;
+    function openModal(index) {
+        // Refresh visible images list in case of filtering
+        visibleImages = Array.from(document.querySelectorAll(selector)).filter(img => {
+            const item = img.closest('.gallery-item');
+            return item ? !item.classList.contains('hide') : true;
+        });
 
-    document.body.style.overflow = 'hidden';
-}
+        // Find correct index in potentially filtered list
+        const clickedImg = images[index];
+        const newIndex = visibleImages.indexOf(clickedImg);
 
-function closeModal() {
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-}
+        if (newIndex === -1) return;
+        currentImageIndex = newIndex;
 
-function showPrevImage() {
-    currentImageIndex = (currentImageIndex - 1 + visibleImages.length) % visibleImages.length;
-    const item = visibleImages[currentImageIndex];
-    const img = item.querySelector('img');
-    const title = item.querySelector('h4')?.textContent || '';
+        const img = visibleImages[currentImageIndex];
+        // For gallery items, title is in h4 sibling. For blog, use alt text or none.
+        const item = img.closest('.gallery-item');
+        const title = item ? (item.querySelector('h4')?.textContent || '') : (img.alt || '');
 
-    modalImg.src = img.src;
-    modalCaption.textContent = title;
-}
+        modal.classList.add('active');
+        modalImg.src = img.src || img.dataset.src;
+        modalCaption.textContent = title;
+        document.body.style.overflow = 'hidden';
+    }
 
-function showNextImage() {
-    currentImageIndex = (currentImageIndex + 1) % visibleImages.length;
-    const item = visibleImages[currentImageIndex];
-    const img = item.querySelector('img');
-    const title = item.querySelector('h4')?.textContent || '';
+    function closeModal() {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
 
-    modalImg.src = img.src;
-    modalCaption.textContent = title;
-}
+    function showPrevImage() {
+        currentImageIndex = (currentImageIndex - 1 + visibleImages.length) % visibleImages.length;
+        const img = visibleImages[currentImageIndex];
+        const item = img.closest('.gallery-item');
+        const title = item ? (item.querySelector('h4')?.textContent || '') : (img.alt || '');
+        modalImg.src = img.src || img.dataset.src;
+        modalCaption.textContent = title;
+    }
 
-// Gallery item click handlers
-if (galleryItems.length > 0) {
-    galleryItems.forEach((item, index) => {
-        item.addEventListener('click', () => {
-            updateVisibleImages();
-            const visibleIndex = visibleImages.indexOf(item);
-            if (visibleIndex !== -1) {
-                openModal(visibleIndex);
-            }
+    function showNextImage() {
+        currentImageIndex = (currentImageIndex + 1) % visibleImages.length;
+        const img = visibleImages[currentImageIndex];
+        const item = img.closest('.gallery-item');
+        const title = item ? (item.querySelector('h4')?.textContent || '') : (img.alt || '');
+        modalImg.src = img.src || img.dataset.src;
+        modalCaption.textContent = title;
+    }
+
+    // Attach click listeners
+    images.forEach((img, index) => {
+        // If inside a link, don't trigger modal (unless preventing default, but safe to assume no link wrapper for now)
+        // If image has parent .gallery-item, attach to it instead?
+        // Old logic attached to .gallery-item. New logic attaches to image or wrapper.
+        // To keep consistent with old behavior:
+        const trigger = img.closest('.gallery-item') || img;
+        trigger.style.cursor = 'pointer';
+
+        trigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal(index);
         });
     });
-}
 
-// Modal controls
-if (modal) {
-    modalClose?.addEventListener('click', closeModal);
-    modalPrev?.addEventListener('click', showPrevImage);
-    modalNext?.addEventListener('click', showNextImage);
+    // Event Listeners (only attach once per modal element)
+    if (!modal.dataset.init) {
+        modalClose?.addEventListener('click', closeModal);
+        modalPrev?.addEventListener('click', showPrevImage);
+        modalNext?.addEventListener('click', showNextImage);
 
-    // Close modal when clicking outside image
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeModal();
-        }
-    });
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
 
-    // Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-        if (!modal.classList.contains('active')) return;
+        document.addEventListener('keydown', (e) => {
+            if (!modal.classList.contains('active')) return;
+            if (e.key === 'Escape') closeModal();
+            if (e.key === 'ArrowLeft') showPrevImage();
+            if (e.key === 'ArrowRight') showNextImage();
+        });
 
-        if (e.key === 'Escape') closeModal();
-        if (e.key === 'ArrowLeft') showPrevImage();
-        if (e.key === 'ArrowRight') showNextImage();
+        modal.dataset.init = 'true';
+    }
+};
+
+// Initialize Gallery Modal (Old Logic Replacement)
+if (document.querySelector('.gallery-item')) {
+    // Wait slightly for dynamic items if needed, or call this after loading
+    // Since gallery items might be dynamic, this initial call might be empty.
+    // However, the helper function re-queries on open. 
+    // BUT, we need to attach listeners. 
+    // Gallery.js or Main.js needs to call this AFTER loading.
+    // For now, let's expose it and let the existing static/dynamic logic call it.
+    // The previous code had `galleryItems` listener here.
+
+    // We will assume static items for now or that verify this works.
+    window.addEventListener('load', () => {
+        window.initImageModal('.gallery-item img');
     });
 }
 
