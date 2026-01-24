@@ -1,5 +1,5 @@
 ---
-title: "The World Just Before COVID-19"
+title: The World Just Before COVID-19
 date: 2026-01-24
 category: Travel
 thumbnail: images/gallery/2020-japan/photo2.webp
