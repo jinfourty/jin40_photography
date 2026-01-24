@@ -8,6 +8,8 @@ excerpt: January 2020, Fukuoka
 
 It was right before the world was engulfed by COVID-19.
 
+## January 2020
+
 The full-blown pandemic that completely changed the world started around February or March 2020, I remember.
 
 As often happens on trips with just a bunch of guys, there were quarrels and reconciliations during this short trip of less than a week, and plenty of hilarious memories were made. Above all, I'm just grateful that we were able to travel abroad at such a perfectly timed moment—it felt like we could see the future.
@@ -16,6 +18,8 @@ As often happens on trips with just a bunch of guys, there were quarrels and rec
   <img src="images/gallery/2020-japan/photo1.webp" alt="photo1">
   <figcaption>Just boarding a plane was enough to make my heart flutter</figcaption>
 </figure>
+
+## A Hobbiest Photographer
 
 It hadn't been long since I'd started photography as a hobby (specifically using a digital camera). Back then, I carried my camera around like it was part of me, eagerly wanting to capture everything I saw through the lens. Every photo I took seemed to turn out well, and even adjusting the colors felt like magic.
 
@@ -41,6 +45,8 @@ Though I'd been to Japan almost every year since I was young (around 30 months o
   <img src="images/gallery/2020-japan/photo4.webp" alt="photo4">
   <figcaption>Why did I love this yellowish sepia tone so much back then?</figcaption>
 </figure>
+
+## The Journey at Twenty
 
 Since we left without much of a plan, we ended up walking for hours in the cold winter. I wish I could say I didn't find it exhausting, but it was quite tiring even then.
 
