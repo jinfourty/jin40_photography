@@ -267,6 +267,11 @@ const BlogSystem = {
                 this.renderRelatedPosts(slug, relatedContainer, relatedGrid);
             }
 
+            // Initialize comments for this post
+            if (typeof CommentSystem !== 'undefined') {
+                CommentSystem.init(slug);
+            }
+
         } catch (error) {
             console.error('Error rendering post:', error);
             if (postLoading) postLoading.style.display = 'none';

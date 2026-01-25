@@ -77,8 +77,9 @@ const CommentSystem = {
      */
     setupForm() {
         const form = document.getElementById('comment-form');
-        if (!form) return;
+        if (!form || form._commentListenerAttached) return;
 
+        form._commentListenerAttached = true;
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             await this.submitComment(form);

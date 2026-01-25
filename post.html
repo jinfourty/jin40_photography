@@ -112,6 +112,23 @@
                 <div class="related-grid" id="related-grid"></div>
             </div>
         </section>
+
+        <!-- Comments Section -->
+        <section class="comments-section post-comments">
+            <div class="container container-narrow">
+                <h3>Comments</h3>
+                <div id="comments-list" class="comments-list"></div>
+
+                <h4 class="comment-form-title">Leave a Comment</h4>
+                <form id="comment-form" class="comment-form">
+                    <input type="text" name="name" placeholder="Your name" required maxlength="50">
+                    <textarea name="message" placeholder="Write your comment here..." rows="4" required maxlength="1000"></textarea>
+                    <input type="text" name="website" class="honeypot" tabindex="-1" autocomplete="off">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+                <div id="comment-message"></div>
+            </div>
+        </section>
     </article>
 
     <!-- Footer -->
@@ -163,6 +180,7 @@
     <!-- Marked.js for Markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/comments.js"></script>
     <script src="js/blog.js"></script>
 </body>
 
