@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>https://jin40photo.com/</loc>
         <lastmod>2026-01-26</lastmod>
@@ -29,11 +30,59 @@
         <lastmod>2026-01-24</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jin40photo.com/blog/2026-01-24-fukuoka(2020)/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://jin40photo.com/blog/2026-01-24-fukuoka(2020)/ko/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://jin40photo.com/blog/2026-01-24-fukuoka(2020)/ja/"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://jin40photo.com/blog/2026-01-24-fukuoka(2020)/"/>
+    </url>
+    <url>
+        <loc>https://jin40photo.com/blog/2026-01-24-fukuoka(2020)/ko/</loc>
+        <lastmod>2026-01-24</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jin40photo.com/blog/2026-01-24-fukuoka(2020)/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://jin40photo.com/blog/2026-01-24-fukuoka(2020)/ko/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://jin40photo.com/blog/2026-01-24-fukuoka(2020)/ja/"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://jin40photo.com/blog/2026-01-24-fukuoka(2020)/"/>
+    </url>
+    <url>
+        <loc>https://jin40photo.com/blog/2026-01-24-fukuoka(2020)/ja/</loc>
+        <lastmod>2026-01-24</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jin40photo.com/blog/2026-01-24-fukuoka(2020)/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://jin40photo.com/blog/2026-01-24-fukuoka(2020)/ko/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://jin40photo.com/blog/2026-01-24-fukuoka(2020)/ja/"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://jin40photo.com/blog/2026-01-24-fukuoka(2020)/"/>
     </url>
     <url>
         <loc>https://jin40photo.com/blog/2026-01-21-ainoshima-cats/</loc>
         <lastmod>2026-01-20</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jin40photo.com/blog/2026-01-21-ainoshima-cats/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://jin40photo.com/blog/2026-01-21-ainoshima-cats/ko/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://jin40photo.com/blog/2026-01-21-ainoshima-cats/ja/"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://jin40photo.com/blog/2026-01-21-ainoshima-cats/"/>
+    </url>
+    <url>
+        <loc>https://jin40photo.com/blog/2026-01-21-ainoshima-cats/ko/</loc>
+        <lastmod>2026-01-20</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jin40photo.com/blog/2026-01-21-ainoshima-cats/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://jin40photo.com/blog/2026-01-21-ainoshima-cats/ko/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://jin40photo.com/blog/2026-01-21-ainoshima-cats/ja/"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://jin40photo.com/blog/2026-01-21-ainoshima-cats/"/>
+    </url>
+    <url>
+        <loc>https://jin40photo.com/blog/2026-01-21-ainoshima-cats/ja/</loc>
+        <lastmod>2026-01-20</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jin40photo.com/blog/2026-01-21-ainoshima-cats/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://jin40photo.com/blog/2026-01-21-ainoshima-cats/ko/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://jin40photo.com/blog/2026-01-21-ainoshima-cats/ja/"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://jin40photo.com/blog/2026-01-21-ainoshima-cats/"/>
     </url>
 </urlset>

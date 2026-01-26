@@ -9,6 +9,34 @@ const BlogSystem = {
     postsIndexUrl: '/posts/index.json',
     postsDir: '/posts/',
     currentLang: localStorage.getItem('selectedLang') || 'en',
+    isInitialized: false,  // Flag to prevent navigation during initial load
+
+    // Get language from URL path for post pages
+    // /blog/slug/ -> 'en', /blog/slug/ko/ -> 'ko', /blog/slug/ja/ -> 'ja'
+    getLanguageFromPath() {
+        const path = window.location.pathname;
+        if (path.match(/\/blog\/[^/]+\/ko\/?$/)) return 'ko';
+        if (path.match(/\/blog\/[^/]+\/ja\/?$/)) return 'ja';
+        return 'en';
+    },
+
+    // Get slug from URL path (without language suffix)
+    getSlugFromPath() {
+        const path = window.location.pathname;
+        // Remove trailing slash and language suffix if present
+        let slug = path.split('/blog/')[1] || '';
+        slug = slug.replace(/\/$/, '');  // Remove trailing slash
+        slug = slug.replace(/\/(ko|ja)$/, '');  // Remove language suffix
+        return slug;
+    },
+
+    // Generate post URL for a specific language
+    getPostUrl(slug, lang) {
+        if (lang === 'en') {
+            return `/blog/${slug}/`;
+        }
+        return `/blog/${slug}/${lang}/`;
+    },
 
     // Format date based on language
     formatDate(dateStr) {
@@ -17,7 +45,7 @@ const BlogSystem = {
 
         let locale = 'en-US';
         if (this.currentLang === 'ko') locale = 'ko-KR';
-        if (this.currentLang === 'jp') locale = 'ja-JP';
+        if (this.currentLang === 'ja') locale = 'ja-JP';
 
         return date.toLocaleDateString(locale, options);
     },
@@ -129,11 +157,12 @@ const BlogSystem = {
                 const title = this.getLocalized(post, 'title');
                 const excerpt = this.getLocalized(post, 'excerpt');
                 const thumbnail = this.getAbsoluteImagePath(post.thumbnail);
+                const postUrl = this.getPostUrl(post.slug, this.currentLang);
 
                 return `
                 <article class="blog-card">
                     <div class="blog-image">
-                        <a href="/blog/${post.slug}/">
+                        <a href="${postUrl}">
                             <img src="${thumbnail}" alt="${title}"
                                  onerror="this.src='https://picsum.photos/600/400?random=${Math.random()}'">
                         </a>
@@ -143,9 +172,9 @@ const BlogSystem = {
                         <div class="blog-meta">
                             <span class="blog-date">${this.formatDate(post.date)}</span>
                         </div>
-                        <h3><a href="/blog/${post.slug}/">${title}</a></h3>
+                        <h3><a href="${postUrl}">${title}</a></h3>
                         <p>${excerpt}</p>
-                        <a href="/blog/${post.slug}/" class="read-more">${readMoreText}</a>
+                        <a href="${postUrl}" class="read-more">${readMoreText}</a>
                     </div>
                 </article>
             `}).join('');
@@ -263,8 +292,8 @@ const BlogSystem = {
 
         if (!postBody) return;
 
-        // Extract slug from URL path: /blog/{slug}/ -> {slug}
-        const slug = window.location.pathname.split('/blog/')[1]?.replace(/\/$/, '');
+        // Extract slug from URL path (handles language suffixes)
+        const slug = this.getSlugFromPath();
 
         if (!slug) {
             if (postLoading) postLoading.style.display = 'none';
@@ -351,8 +380,9 @@ const BlogSystem = {
             grid.innerHTML = otherPosts.map(post => {
                 const title = this.getLocalized(post, 'title');
                 const thumbnail = this.getAbsoluteImagePath(post.thumbnail);
+                const postUrl = this.getPostUrl(post.slug, this.currentLang);
                 return `
-                <a href="/blog/${post.slug}/" class="related-card">
+                <a href="${postUrl}" class="related-card">
                     <img src="${thumbnail}" alt="${title}"
                          onerror="this.src='https://picsum.photos/300/200?random=${Math.random()}'">
                     <h4>${title}</h4>
@@ -399,12 +429,31 @@ const BlogSystem = {
         if (this.isBlogListPage()) {
             this.renderBlogList();
         } else if (this.isPostPage()) {
-            this.renderPost();
+            // Skip navigation during initial load to prevent race condition
+            if (!this.isInitialized) {
+                return;
+            }
+            // Only navigate if the language is different from current URL
+            const currentUrlLang = this.getLanguageFromPath();
+            if (lang !== currentUrlLang) {
+                const slug = this.getSlugFromPath();
+                const newUrl = this.getPostUrl(slug, lang);
+                window.location.href = newUrl;
+            }
         }
     },
 
     // Initialize based on current page
     init() {
+        // On post pages, detect language from URL and sync with system
+        if (this.isPostPage()) {
+            const urlLang = this.getLanguageFromPath();
+            // Update currentLang to match URL (URL takes precedence)
+            this.currentLang = urlLang;
+            // Also update localStorage to keep it in sync
+            localStorage.setItem('selectedLang', urlLang);
+        }
+
         // Listen for global language change event
         window.addEventListener('languageChanged', (e) => {
             this.onLanguageChange(e.detail.lang);
@@ -421,6 +470,11 @@ const BlogSystem = {
         if (this.isPostPage()) {
             this.renderPost();
         }
+
+        // Mark as initialized after a short delay to allow TranslationSystem to finish
+        setTimeout(() => {
+            this.isInitialized = true;
+        }, 100);
     }
 };
 

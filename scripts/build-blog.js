@@ -15,6 +15,21 @@ const POSTS_DIR = path.join(__dirname, '..', 'posts');
 const INDEX_FILE = path.join(POSTS_DIR, 'index.json');
 const BLOG_DIR = path.join(__dirname, '..', 'blog');
 const POST_TEMPLATE = path.join(__dirname, '..', 'post.html');
+const SITE_URL = 'https://jin40photo.com';
+const SUPPORTED_LANGS = ['en', 'ko', 'ja'];
+
+// Language code mappings (internal code -> ISO code)
+const LANG_CODES = {
+    en: 'en',
+    ko: 'ko',
+    ja: 'ja'
+};
+
+const OG_LOCALES = {
+    en: 'en_US',
+    ko: 'ko_KR',
+    ja: 'ja_JP'
+};
 
 /**
  * Parse frontmatter from markdown content
@@ -82,7 +97,7 @@ function buildBlogIndex() {
 
     for (const slug of directories) {
         const postDir = path.join(POSTS_DIR, slug);
-        const supportedLangs = ['en', 'ko', 'jp'];
+        const supportedLangs = ['en', 'ko', 'ja'];
 
         let baseMetadata = null;
         let titleObj = {};
@@ -151,11 +166,33 @@ function buildBlogIndex() {
 }
 
 /**
+ * Generate hreflang tags for a post
+ */
+function generateHreflangTags(slug) {
+    const enUrl = `${SITE_URL}/blog/${slug}/`;
+    const koUrl = `${SITE_URL}/blog/${slug}/ko/`;
+    const jaUrl = `${SITE_URL}/blog/${slug}/ja/`;
+
+    return `<link rel="alternate" hreflang="en" href="${enUrl}">
+    <link rel="alternate" hreflang="ko" href="${koUrl}">
+    <link rel="alternate" hreflang="ja" href="${jaUrl}">
+    <link rel="alternate" hreflang="x-default" href="${enUrl}">`;
+}
+
+/**
+ * Get localized value with fallback
+ */
+function getLocalizedValue(obj, lang) {
+    if (typeof obj === 'string') return obj;
+    return obj[lang] || obj['en'] || Object.values(obj)[0] || '';
+}
+
+/**
  * Generate individual blog post HTML files
- * Creates blog/{slug}/index.html for each post
+ * Creates blog/{slug}/index.html and blog/{slug}/{lang}/index.html for each post
  */
 function generatePostPages(posts) {
-    console.log('\nGenerating post pages...\n');
+    console.log('\nGenerating multilingual post pages...\n');
 
     // Read the post.html template
     if (!fs.existsSync(POST_TEMPLATE)) {
@@ -185,39 +222,86 @@ function generatePostPages(posts) {
         }
     }
 
-    // Generate HTML for each post
+    let totalGenerated = 0;
+
+    // Generate HTML for each post in each language
     for (const post of posts) {
-        const postDir = path.join(BLOG_DIR, post.slug);
-        const indexFile = path.join(postDir, 'index.html');
+        const postBaseDir = path.join(BLOG_DIR, post.slug);
 
         // Create post directory
-        if (!fs.existsSync(postDir)) {
-            fs.mkdirSync(postDir, { recursive: true });
+        if (!fs.existsSync(postBaseDir)) {
+            fs.mkdirSync(postBaseDir, { recursive: true });
         }
 
-        // Modify template: fix relative paths for nested directory
-        let html = template;
+        // Generate hreflang tags (same for all language versions)
+        const hreflangTags = generateHreflangTags(post.slug);
 
-        // Fix CSS path
-        html = html.replace('href="css/style.css"', 'href="../../css/style.css"');
+        // Thumbnail URL (absolute)
+        const thumbnailUrl = post.thumbnail
+            ? `${SITE_URL}/${post.thumbnail}`
+            : `${SITE_URL}/images/hero/hero-photo.webp`;
 
-        // Fix script paths
-        html = html.replace('src="js/main.js"', 'src="../../js/main.js"');
-        html = html.replace('src="js/comments.js"', 'src="../../js/comments.js"');
-        html = html.replace('src="js/blog.js"', 'src="../../js/blog.js"');
+        // Generate for each language
+        for (const lang of SUPPORTED_LANGS) {
+            // Determine output directory and URL
+            const isDefaultLang = (lang === 'en');
+            const outputDir = isDefaultLang
+                ? postBaseDir
+                : path.join(postBaseDir, lang);
+            const canonicalUrl = isDefaultLang
+                ? `${SITE_URL}/blog/${post.slug}/`
+                : `${SITE_URL}/blog/${post.slug}/${lang}/`;
 
-        // Fix navigation links (use replaceAll for multiple occurrences)
-        html = html.replaceAll('href="/"', 'href="../../"');
-        html = html.replaceAll('href="gallery"', 'href="../../gallery"');
-        html = html.replaceAll('href="blog"', 'href="../../blog"');
-        html = html.replaceAll('href="guestbook"', 'href="../../guestbook"');
+            // Create language subdirectory if needed
+            if (!isDefaultLang && !fs.existsSync(outputDir)) {
+                fs.mkdirSync(outputDir, { recursive: true });
+            }
 
-        // Write the file
-        fs.writeFileSync(indexFile, html);
-        console.log(`  ✓ ${post.slug}/index.html`);
+            // Get localized content
+            const title = getLocalizedValue(post.title, lang);
+            const description = getLocalizedValue(post.excerpt, lang);
+
+            // Start with template
+            let html = template;
+
+            // Replace SEO placeholders
+            html = html.replaceAll('{{LANG}}', LANG_CODES[lang]);
+            html = html.replaceAll('{{LANG_CODE}}', LANG_CODES[lang]);
+            html = html.replaceAll('{{TITLE}}', title);
+            html = html.replaceAll('{{DESCRIPTION}}', description);
+            html = html.replaceAll('{{CANONICAL_URL}}', canonicalUrl);
+            html = html.replaceAll('{{THUMBNAIL_URL}}', thumbnailUrl);
+            html = html.replaceAll('{{OG_LOCALE}}', OG_LOCALES[lang]);
+            html = html.replaceAll('{{DATE}}', post.date);
+            html = html.replace('{{HREFLANG_TAGS}}', hreflangTags);
+
+            // Fix relative paths based on directory depth
+            const depth = isDefaultLang ? '../../' : '../../../';
+
+            // Fix CSS path
+            html = html.replace('href="css/style.css"', `href="${depth}css/style.css"`);
+
+            // Fix script paths
+            html = html.replace('src="js/main.js"', `src="${depth}js/main.js"`);
+            html = html.replace('src="js/comments.js"', `src="${depth}js/comments.js"`);
+            html = html.replace('src="js/blog.js"', `src="${depth}js/blog.js"`);
+
+            // Fix navigation links
+            html = html.replaceAll('href="/"', `href="${depth}"`);
+            html = html.replaceAll('href="gallery"', `href="${depth}gallery"`);
+            html = html.replaceAll('href="blog"', `href="${depth}blog"`);
+            html = html.replaceAll('href="guestbook"', `href="${depth}guestbook"`);
+
+            // Write the file
+            const indexFile = path.join(outputDir, 'index.html');
+            fs.writeFileSync(indexFile, html);
+            totalGenerated++;
+        }
+
+        console.log(`  ✓ ${post.slug}/ (en, ko, ja)`);
     }
 
-    console.log(`\n✅ Generated ${posts.length} post page(s) in blog/`);
+    console.log(`\n✅ Generated ${totalGenerated} post page(s) for ${posts.length} post(s) in blog/`);
 }
 
 // Run
